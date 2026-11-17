@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Add to Things</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1d1d1f; --muted: #6e6e73; --accent: #2f6fed; --card: #f5f5f7; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111113; --fg: #f2f2f4; --muted: #9a9aa1; --accent: #5b8cff; --card: #1c1c1f; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 480px; margin: 0 auto; padding: 48px 16px; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  .card { background: var(--card); border-radius: 12px; padding: 14px 16px; margin: 0 0 20px; overflow-wrap: anywhere; }
+  .card b { display: block; }
+  .card span { color: var(--muted); font-size: 14px; }
+  a.button { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none;
+             font-weight: 600; padding: 14px 16px; border-radius: 12px; }
+  p.small { color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Add to Things</h1>
+  <div id="card" class="card" hidden><b id="title"></b><span id="project"></span></div>
+  <a id="open" class="button" href="#" hidden>Open Things</a>
+  <p id="hint" class="small" hidden>Things should open by itself. If it didn't, tap the button above.</p>
+  <p id="empty" class="small" hidden>Nothing to add: this page needs a link from a notification email.</p>
+</main>
+<script>
+(function () {
+  // Only these three values are passed on, and only to the "add" command of Things.
+  var q = new URLSearchParams(location.search);
+  var title = (q.get("title") || "").trim();
+  var notes = q.get("notes") || "";
+  var list = (q.get("list") || "").trim();
+
+  function show(id) { document.getElementById(id).hidden = false; }
+
+  if (!title) { show("empty"); return; }
+
+  // Things expects percent-encoding (%20 for spaces), so build the query by hand.
+  var parts = ["title=" + encodeURIComponent(title)];
+  if (notes) parts.push("notes=" + encodeURIComponent(notes));
+  if (list) parts.push("list=" + encodeURIComponent(list));
+  var url = "things:///add?" + parts.join("&");
+
+  document.getElementById("title").textContent = title;
+  document.getElementById("project").textContent = list ? "Project: " + list : "Inbox";
+  var button = document.getElementById("open");
+  button.href = url;
+  show("card"); show("open"); show("hint");
+
+  // Try to open Things right away; the button is the fallback when the browser wants a tap first.
+  location.href = url;
+})();
+</script>
+</body>
+</html>
